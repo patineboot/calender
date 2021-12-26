@@ -1,0 +1,56 @@
+# BSD 2-Clause License
+
+# Copyright (c) 2013, 2020, 2021, Patineboot
+# All rights reserved.
+
+# JDK
+JAVA_HOME := /usr
+JAVA  := $(JAVA_HOME)/bin/java
+JAVAC := $(JAVA_HOME)/bin/javac
+JAR   := $(JAVA_HOME)/bin/jar
+JAVDOC := $(JAVA_HOME)/bin/javadoc
+
+# UNIX Command
+FIND  := find
+MKDIR := mkdir -p
+RM    := rm -rf
+
+# Directories 
+SOURCE_DIR = src
+OUTPUT_DIR = classes
+JAVADOC_DIR = doc
+
+JARFILE  := schedule.jar
+MANIFEST := $(SOURCE_DIR)/MANIFEST.MF
+
+JFLAGS  := -Xlint:all,-serial -sourcepath $(SOURCE_DIR) \
+           -d $(OUTPUT_DIR)
+JDFLAGS := -private -sourcepath $(SOURCE_DIR) \
+           -d $(JAVADOC_DIR)
+JARFLAGS := -cfm
+
+SRC := $(FIND) $(SOURCE_DIR) -name '*.java'
+
+# 出力ディレクトリの作成
+make-directories := $(shell $(MKDIR) $(OUTPUT_DIR) $(JAVADOC_DIR))
+
+.PHONY: all compile clean
+
+all: $(JARFILE)
+all_javas := ./all.javas
+
+$(JARFILE): $(MANIFEST) compile
+	$(JAR) $(JARFLAGS) $@ $(MANIFEST) -C $(OUTPUT_DIR) .
+
+compile: $(all_javas)
+	$(JAVAC) $(JFLAGS) @$<
+
+.INTERMEDIATE: $(all_javas)
+$(all_javas):
+	$(FIND) $(SOURCE_DIR) -name '*.java' > $@
+
+javadoc: $(all_javas)
+	$(JAVDOC) $(JDFLAGS) @$<
+
+clean:
+	$(RM) $(OUTPUT_DIR) $(JARFILE)
